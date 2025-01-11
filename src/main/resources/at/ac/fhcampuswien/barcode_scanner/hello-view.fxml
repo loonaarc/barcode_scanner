@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <?import javafx.scene.control.Label?>
-<HBox spacing="10" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.ac.fhcampuswien.barcode_scanner.HelloController">
+<HBox spacing="10" xmlns="http://javafx.com/javafx/22.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.ac.fhcampuswien.barcode_scanner.HelloController">
   <children>
     <!-- Video Feed ImageView -->
     <ImageView fx:id="videoFeedView" fitHeight="480.0" fitWidth="640.0" pickOnBounds="true" preserveRatio="true" />
@@ -15,6 +15,8 @@
     <VBox alignment="TOP_CENTER" spacing="10">
       <ImageView fx:id="productImageView" fitHeight="200.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
       <Label fx:id="productInfoLabel" wrapText="true" maxWidth="200" />
+      <Button fx:id="resumeButton" text="Resume Scanning" onAction="#onResumeButtonClicked" disable="true"/>
+
     </VBox>
   </children>
 </HBox>

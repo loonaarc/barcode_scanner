@@ -33,10 +33,14 @@ public class HelloController {
     @FXML
     private Label productInfoLabel; // New label for product details
 
+    @FXML
+    private Button resumeButton; // The UI button
 
     private VideoCapture camera;
 
     private BarcodeDetector barcodeDetector;
+    private String lastDetectedBarcode = null;
+    private volatile boolean cameraPaused = false;
 
 
     @FXML
@@ -57,17 +61,18 @@ public class HelloController {
         new Thread(() -> {
             Mat frame = new Mat(); // OpenCV Mat to hold frames
             while (camera.isOpened()) {
-                if (camera.read(frame)) {
+                if (camera.read(frame) && !cameraPaused) {
 
                     // Process the frame for barcode detection
                     String barcode = detectBarcode(frame);
 
                     if (barcode != null && !barcode.isEmpty()) {
-
-                        // Fetch product info
-                        fetchProductInfo(barcode);
+                        if (!barcode.equals(lastDetectedBarcode)) {
+                            cameraPaused = true;
+                            lastDetectedBarcode = barcode;
+                            fetchProductInfo(barcode);
+                        }
                     }
-
 
                     // Convert Mat to JavaFX Image and update the video feed
                     Image image = matToImage(frame);
@@ -92,10 +97,17 @@ public class HelloController {
 
 
     private void fetchProductInfo(String barcode) {
+        // LOG #1: Right before we spawn the new thread
+        System.out.println("fetchProductInfo called with barcode = " + barcode);
+
         new Thread(() -> {
             try {
+                // LOG #2: Indicate we entered the background thread
+                System.out.println("Entering background thread for fetchProductInfo with barcode = " + barcode);
+
                 // Build the API URL with selected fields
                 String url = "https://world.openfoodfacts.org/api/v0/product/" + barcode + ".json?fields=product_name,brands,categories,nutriments,image_front_url,allergens_tags";
+                System.out.println("fetchProductInfo URL = " + url);
 
                 // Create HttpClient
                 HttpClient client = HttpClient.newHttpClient();
@@ -107,12 +119,18 @@ public class HelloController {
                         .header("Accept", "application/json")
                         .build();
 
-                // Send request and get response
+                // LOG #3: About to send HTTP request
+                System.out.println("Sending HTTP request for barcode = " + barcode);
+
+                // Send request and get response (blocking call)
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
+                // LOG #4: Response received
+                System.out.println("HTTP response received. Status code = " + response.statusCode());
+
                 if (response.statusCode() == 200) {
-                    // Parse JSON response
                     JSONObject jsonResponse = new JSONObject(response.body());
+                    System.out.println("JSON parsing done. Checking 'product' field...");
 
                     if (jsonResponse.has("product") && !jsonResponse.isNull("product")) {
                         JSONObject product = jsonResponse.getJSONObject("product");
@@ -124,12 +142,21 @@ public class HelloController {
                         JSONObject nutriments = product.optJSONObject("nutriments");
                         String allergens = product.optString("allergens_tags", "None");
 
-                        // Get specific nutrition details
-                        String energy = nutriments != null ? nutriments.optString("energy_100g", "N/A") : "N/A";
-                        String fat = nutriments != null ? nutriments.optString("fat_100g", "N/A") : "N/A";
+                        String energy = (nutriments != null) ? nutriments.optString("energy_100g", "N/A") : "N/A";
+                        String fat = (nutriments != null) ? nutriments.optString("fat_100g", "N/A") : "N/A";
 
-                        // Update the UI with product details
+                        // LOG #5: Right before we update the UI
+                        System.out.println("Parsed product data: " + productName + " (" + brand + ")  - Image URL: " + imageUrl);
+
+                        if (imageUrl != null) {
+                            System.out.println("Loading product image from URL: " + imageUrl);
+                            Image productImage = new Image(imageUrl);
+
+                        }
                         Platform.runLater(() -> {
+                            // LOG #6: We are now on the UI thread
+                            System.out.println("Updating UI on JavaFX thread for barcode = " + barcode);
+
                             String info = "Product: " + productName +
                                     "\nBrand: " + brand +
                                     "\nCategory: " + category +
@@ -141,21 +168,45 @@ public class HelloController {
 
                             // Display product image in the dedicated ImageView
                             if (imageUrl != null) {
-                                Image productImage = new Image(imageUrl);
+                                System.out.println("Loading product image from URL: " + imageUrl);
+                                Image productImage = new Image(imageUrl, true);
                                 productImageView.setImage(productImage);
+                                System.out.println("Finished loading and setting product image.");
+
                             }
+                            resumeButton.setDisable(false);
                         });
                     } else {
-                        Platform.runLater(() -> productInfoLabel.setText("No product found for this barcode."));
+                        System.out.println("No 'product' field in JSON. Updating UI with 'No product found...'");
+                        Platform.runLater(() -> {
+                            productInfoLabel.setText("No product found for this barcode.");
+                            resumeButton.setDisable(false);
+                        });
+
                     }
                 } else {
-                    Platform.runLater(() -> productInfoLabel.setText("Error fetching product details. HTTP Code: " + response.statusCode()));
+                    System.out.println("HTTP error code: " + response.statusCode() + " - updating UI with error.");
+                    Platform.runLater(() -> {
+                        productInfoLabel.setText("Error fetching product details. HTTP Code: " + response.statusCode());
+                        resumeButton.setDisable(false);
+                    });
+                    resumeButton.setDisable(false);
                 }
+
             } catch (Exception e) {
                 e.printStackTrace();
+                System.out.println("Exception caught in fetchProductInfo: " + e.getMessage());
                 Platform.runLater(() -> productInfoLabel.setText("Error fetching product details."));
+                resumeButton.setDisable(false);
+            } finally {
+                // LOG #7: Mark the end of the background thread execution
+                System.out.println("fetchProductInfo background thread exiting for barcode = " + barcode);
+
             }
         }).start();
+
+        // LOG #8: Right after we spawn the new thread
+        System.out.println("Thread spawned for fetchProductInfo with barcode = " + barcode);
     }
 
 
@@ -185,10 +236,10 @@ public class HelloController {
         return writableImage;
     }
 
-    public void stopCamera() {
-        if (camera != null && camera.isOpened()) {
-            camera.release();
-        }
+    @FXML
+    private void onResumeButtonClicked() {
+        cameraPaused = false;
+        resumeButton.setDisable(true);
     }
 
 }
