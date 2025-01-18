@@ -28,13 +28,12 @@ public class UIController {
 
     @FXML
     private TextArea logArea;
+
     private VideoCapture camera;
     private CameraHandler cameraHandler;
-    //private BarcodeDetector barcodeDetector;
     private BarcodeScanner barcodeScanner;
     private ProductInfoFetcher productInfoFetcher;
     private String lastDetectedBarcode = null;
-    //private volatile boolean cameraPaused = false;
 
 
 
@@ -43,13 +42,10 @@ public class UIController {
         // Load the OpenCV native library
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-        // Initialize the camera and start the video feed
-        //camera = new VideoCapture(0);
-
-        barcodeScanner = new BarcodeScanner();
         cameraHandler = new CameraHandler(videoFeedView, this);
+        barcodeScanner = new BarcodeScanner();
+
         productInfoFetcher = new ProductInfoFetcher(productInfoLabel, productImageView, this);
-        //startCameraFeed();
     }
 
     public void onFrameCaptured(Mat frame) {
@@ -65,6 +61,8 @@ public class UIController {
 
     @FXML
     private void onResumeButtonClicked() {
+        productImageView.setImage(null);
+        productInfoLabel.setText("");
         cameraHandler.resumeCamera();
         resumeButton.setDisable(true);
     }
