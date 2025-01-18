@@ -21,7 +21,7 @@ public class CameraHandler {
     }
 
     private void initializeCamera() {
-        camera = new VideoCapture(0);
+        camera = new VideoCapture(1);
         startCameraFeed();
     }
 

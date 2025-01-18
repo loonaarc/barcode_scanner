@@ -21,7 +21,7 @@ public class UIController {
     private ImageView productImageView; // For the product image
 
     @FXML
-    private Label productInfoLabel; // New label for product details
+    private TextArea productInfoArea; // New label for product details
 
     @FXML
     private Button resumeButton; // The UI button
@@ -51,7 +51,7 @@ public class UIController {
         cameraHandler = new CameraHandler(videoFeedView, this);
         barcodeScanner = new BarcodeScanner();
 
-        productInfoFetcher = new ProductInfoFetcher(productInfoLabel, productImageView, this);
+        productInfoFetcher = new ProductInfoFetcher(productInfoArea, productImageView, this);
     }
 
     public void onFrameCaptured(Mat frame) {
@@ -69,7 +69,7 @@ public class UIController {
     private void onResumeButtonClicked() {
         logArea.setText("");
         productImageView.setImage(null);
-        productInfoLabel.setText("");
+        productInfoArea.setText("");
         cameraHandler.resumeCamera();
         resumeButton.setDisable(true);
     }
@@ -80,7 +80,7 @@ public class UIController {
         if (barcode != null && !barcode.isEmpty() && !barcode.equals(lastDetectedBarcode)) {
             logArea.setText("");
             productImageView.setImage(null);
-            productInfoLabel.setText("");
+            productInfoArea.setText("");
             cameraHandler.pauseCamera();
             lastDetectedBarcode = barcode;
             productInfoFetcher.fetchProductInfo(barcode, () -> resumeButton.setDisable(false));

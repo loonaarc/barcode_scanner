@@ -2,6 +2,7 @@ package at.ac.fhcampuswien.barcode_scanner;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.json.JSONObject;
@@ -13,12 +14,12 @@ import java.net.http.HttpResponse;
 
 public class ProductInfoFetcher {
 
-    private Label productInfoLabel;
+    private TextArea productInfoArea;
     private ImageView productImageView;
     private UIController uiController;
 
-    public ProductInfoFetcher(Label productInfoLabel, ImageView productImageView, UIController uiController) {
-        this.productInfoLabel = productInfoLabel;
+    public ProductInfoFetcher(TextArea productInfoArea, ImageView productImageView, UIController uiController) {
+        this.productInfoArea = productInfoArea;
         this.productImageView = productImageView;
         this.uiController = uiController;
     }
@@ -39,7 +40,7 @@ public class ProductInfoFetcher {
             } catch (Exception e) {
                 e.printStackTrace();
                 uiController.appendLog("Exception caught in fetchProductInfo: " + e.getMessage());
-                Platform.runLater(() -> productInfoLabel.setText("Error fetching product details."));
+                Platform.runLater(() -> productInfoArea.setText("Error fetching product details."));
             } finally {
                 // LOG #7: Mark the end of the background thread execution
                 // Notify that product info fetching is complete
@@ -86,7 +87,7 @@ public class ProductInfoFetcher {
         } else {
             uiController.appendLog("No 'product' field in JSON. Updating UI with 'No product found...'");
             Platform.runLater(() -> {
-                productInfoLabel.setText("No product found for this barcode.");
+                productInfoArea.setText("No product found for this barcode.");
             });
             return null;
         }
@@ -103,16 +104,23 @@ public class ProductInfoFetcher {
             String brand = product.optString("brands", "Unknown");
             String category = product.optString("categories", "Unknown");
             String imageUrl = product.optString("image_front_url", null);
-            JSONObject nutriments = product.optJSONObject("nutriments");
             String allergens = product.optString("allergens", "Unknown");
+            String quantity = product.optString("quantity", "Unknown");
+            int nova_group = product.optInt("nova_group", 0);
+            String countries = product.optString("countries", "Unknown");
+            String manufacturing_places = product.optString("manufacturing_places");
+            String ingredients_text = product.optString("ingredients_text", "Unknown");
+            String nutriscore_grade = product.optString("nutriscore_grade", "Unknown");
 
+            JSONObject nutriments = product.optJSONObject("nutriments");
             String energy = (nutriments != null) ? nutriments.optString("energy_100g", "N/A") : "N/A";
             String fat = (nutriments != null) ? nutriments.optString("fat_100g", "N/A") : "N/A";
 
             // LOG #5: Right before we update the UI
             uiController.appendLog("Parsed product data: " + name + " (" + brand + ")  - Image URL: " + imageUrl);
 
-            return new Product(name, brand, category, energy, fat, allergens, imageUrl);
+            return new Product(name, brand, category, energy, fat, allergens, imageUrl, quantity, nova_group, countries,
+                    manufacturing_places, ingredients_text, nutriscore_grade);
 
         }
         return null;
@@ -124,13 +132,19 @@ public class ProductInfoFetcher {
             uiController.appendLog("Updating UI on JavaFX thread for barcode = " + barcode);
 
             String info = "Product: " + product.getName() +
+                    "\nQuantity: " + product.getQuantity() +
                     "\nBrand: " + product.getBrand() +
                     "\nCategory: " + product.getCategory() +
+                    "\nIngredients: " + product.getIngredients_text() +
                     "\nEnergy: " + product.getEnergy() + " kcal" +
                     "\nFat: " + product.getFat() + " g" +
-                    "\nAllergens: " + product.getAllergens();
+                    "\nAllergens: " + product.getAllergens() +
+                    "\nSelling countries: " + product.getCountries() +
+                    "\nManufacturing places: " + product.getManufacturing_places() +
+                    "\nNutriscore: " + product.getNutriscore_grade() +
+                    "\nNova Group: " + product.getNova_group();
 
-            productInfoLabel.setText(info);
+            productInfoArea.setText(info);
 
             // Display product image in the dedicated ImageView
             if (product.getImageUrl() != null) {
