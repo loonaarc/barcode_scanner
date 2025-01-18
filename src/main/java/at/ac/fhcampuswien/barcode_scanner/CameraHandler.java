@@ -13,15 +13,17 @@ public class CameraHandler {
     private ImageView videoFeedView;
     private volatile boolean cameraPaused = false;
     private UIController uiController;
+    private int currentCameraIndex;
 
     public CameraHandler(ImageView videoFeedView, UIController uiController) {
         this.videoFeedView = videoFeedView;
         this.uiController = uiController;
+        currentCameraIndex = 0;
         initializeCamera();
     }
 
     private void initializeCamera() {
-        camera = new VideoCapture(1);
+        camera = new VideoCapture(currentCameraIndex);
         startCameraFeed();
     }
 
@@ -49,6 +51,25 @@ public class CameraHandler {
 
     public void resumeCamera() {
         cameraPaused = false;
+    }
+
+    public static boolean checkSecondCamera() {
+        VideoCapture cap = new VideoCapture(1);
+        if (cap.isOpened()) {
+            cap.release();
+            System.out.println("Second camera found");
+            return true;
+        }
+        System.out.println("No second camera found");
+        return false;
+    }
+
+    public void changeCamera() {
+        currentCameraIndex = currentCameraIndex == 0 ? 1 : 0;
+        if (camera != null && camera.isOpened()) {
+            camera.release();
+        }
+        initializeCamera();
     }
 
     private Image matToImage(Mat mat) {

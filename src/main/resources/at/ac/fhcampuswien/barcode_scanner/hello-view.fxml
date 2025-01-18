@@ -25,7 +25,7 @@
                      <Button fx:id="resumeButton" disable="true" onAction="#onResumeButtonClicked" text="Resume Scanning" />
                         <TextArea prefHeight="13.0" prefWidth="50.0" promptText="Enter barcode" />
                         <Button mnemonicParsing="false" text="Lookup barcode" />
-                        <ToggleButton mnemonicParsing="false" text="Switch Camera" />
+                        <ToggleButton fx:id="toggleCameraButton" disable="true" onAction="#onToggleCameraButtonClicked" text="Switch Camera" />
                      </children>
                   </VBox>
                </children>
