@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/22.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.ac.fhcampuswien.barcode_scanner.UIController">
+<VBox prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.ac.fhcampuswien.barcode_scanner.UIController">
    <children>
       <HBox prefHeight="400.0" prefWidth="800.0" spacing="10">
         <children>
@@ -22,6 +22,8 @@
                   <VBox alignment="CENTER" prefHeight="100.0" prefWidth="400.0">
                      <children>
                      <Button fx:id="resumeButton" disable="true" onAction="#onResumeButtonClicked" text="Resume Scanning" />
+                        <TextArea fx:id="manualEntryArea" prefHeight="13.0" prefWidth="50.0" promptText="Enter barcode" />
+                        <Button fx:id="lookupButton" onAction="#onLookupButtonClicked" mnemonicParsing="false" text="Lookup barcode" />
                      </children>
                   </VBox>
                </children>

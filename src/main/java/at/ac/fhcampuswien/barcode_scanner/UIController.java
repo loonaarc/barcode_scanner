@@ -29,6 +29,12 @@ public class UIController {
     @FXML
     private TextArea logArea;
 
+    @FXML
+    private TextArea manualEntryArea;
+
+    @FXML
+    private Button lookupButton;
+
     private VideoCapture camera;
     private CameraHandler cameraHandler;
     private BarcodeScanner barcodeScanner;
@@ -61,10 +67,24 @@ public class UIController {
 
     @FXML
     private void onResumeButtonClicked() {
+        logArea.setText("");
         productImageView.setImage(null);
         productInfoLabel.setText("");
         cameraHandler.resumeCamera();
         resumeButton.setDisable(true);
+    }
+
+    @FXML void onLookupButtonClicked() {
+        String barcode = manualEntryArea.getText().trim();
+
+        if (barcode != null && !barcode.isEmpty() && !barcode.equals(lastDetectedBarcode)) {
+            logArea.setText("");
+            productImageView.setImage(null);
+            productInfoLabel.setText("");
+            cameraHandler.pauseCamera();
+            lastDetectedBarcode = barcode;
+            productInfoFetcher.fetchProductInfo(barcode, () -> resumeButton.setDisable(false));
+        }
     }
 
     @FXML
