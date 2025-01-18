@@ -6,10 +6,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 
+import java.io.File;
 
 
 public class UIController {
@@ -38,11 +41,12 @@ public class UIController {
 
     @FXML
     private ToggleButton toggleCameraButton;
+
+
     private CameraHandler cameraHandler;
     private BarcodeScanner barcodeScanner;
     private ProductInfoFetcher productInfoFetcher;
     private String lastDetectedBarcode = null;
-
 
 
     @FXML
@@ -54,7 +58,6 @@ public class UIController {
             toggleCameraButton.setDisable(false);
         }
         cameraHandler = new CameraHandler(videoFeedView, this);
-
         barcodeScanner = new BarcodeScanner();
 
         productInfoFetcher = new ProductInfoFetcher(productInfoArea, productImageView, this);
@@ -65,7 +68,6 @@ public class UIController {
 
     public void onFrameCaptured(Mat frame) {
         String barcode = barcodeScanner.detectBarcode(frame);
-
         if (barcode != null && !barcode.isEmpty() && !barcode.equals(lastDetectedBarcode)) {
             cameraHandler.pauseCamera();
             lastDetectedBarcode = barcode;
@@ -96,9 +98,13 @@ public class UIController {
         }
     }
 
+
+
     @FXML void onToggleCameraButtonClicked() {
         cameraHandler.changeCamera();
     }
+
+
 
     @FXML
     public void appendLog(String message) {

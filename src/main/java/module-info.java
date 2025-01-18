@@ -4,6 +4,7 @@ module at.ac.fhcampuswien.barcode_scanner {
     requires opencv;
     requires java.net.http;
     requires org.json;
+    requires java.desktop;
 
 
     opens at.ac.fhcampuswien.barcode_scanner to javafx.fxml;
